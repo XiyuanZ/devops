@@ -1,139 +1,72 @@
 #!/usr/bin/env groovy
 
 pipeline {
-
 	agent {
-
 		docker {
-
 			image 'zxiyuan/get-started:part2'
-
 		}	
-
 	}
-
 	parameters {
-
 		booleanParam(name:'Full Stream?',defaultValue:'',description:'')
-
 	}
-
 	triggers {
-
 		cron('H */4 * * 1-5')
-
 	}
-
 	stages {
-
 		stage('checkout') {
-
 			steps {
-
 				checkout scm
-
 			}
-
 		}
-
 		stage('build') {
-
 			options {
-
 				retry(3)
-
 			}
-
 			steps {
-
 				echo 'Hello, Maven'
-
 				sh 'mvn --version'
-
 				sleep(30)
-
 			}
-
 		}
-
 		stage('parallel test') {
-
 			parallel {
-
 				stage('parallel_1') {
-
 					steps {
-
 						echo 'In parallel 1'
-
 						sleep(20)
-
 					}
-
 				}
-
 				stage('parallel_2') {
-
 					steps {
-
 						echo 'In parallel 2'
-
 						sleep(40)
-
 					}
-
 				}
-
 			}
 
 		}
-
 		stage('deploy') {
-
 			input {
-
 				message 'Continue to Deploy?'
-
 				ok 'Yes'
-
 			}
-
 			/*when {
-
 				branch 'master'
-
 			}*/
-
 			steps {
-
 				echo 'Deploying...'
-
 				sh 'docker build --tag=friendlyhello .'
-
 				sh 'docker tag friendlyhello zxiyuan/get-started:part3'
-
 				sh 'docker push zxiyuan/get-started:part3'
-
 			}
-
 		}
-
 	}
-
 	post {
-
 		success {
-
 			echo 'I will always say Hello again!'
-
 			//docker swarm init
-
 			//docker stack deploy -c docker-compose.yml getstartedlab
-
 			sh 'docker run -p 4000:80 zxiyuan/get-started:part3'
-
 		}
-
 	}
-
 }
